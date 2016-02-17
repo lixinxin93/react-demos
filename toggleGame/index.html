@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="../build/react.js"></script>
+    <script src="../build/react-dom.js"></script>
+    <script src="../build/browser.min.js"></script>
+    <script src="../build/jquery.min.js"></script>
+  </head>
+  <style type="text/css">
+    .blue{background-color: blue;}
+    .orange{background-color: orange;}
+    .blue,.orange{float: left;width:50px;height: 50px; border: 2px solid #999;}
+    .f-cb:after{
+        display: block;
+        clear: both;
+        visibility: hidden;
+        height: 0;
+        overflow: hidden;
+        content: ".";
+    }
+  </style>
+  <body>
+    <div id="wrap"></div>    
+  <script type="text/babel">
+    // 小方块
+    var OnePiece = React.createClass({
+
+      render: function() {
+          return (
+            <div className={this.props.colorOk ? 'blue' : 'orange'} onClick={this.props.onClick}></div>
+          );
+      }
+    });
+
+    ///外围的整体
+    var BigSquare = React.createClass({
+      getInitialState: function(){
+        return {
+          level: 2,
+          metrix: [false,false,false,false],
+          totalClickNum: 0};
+      },
+
+      passLevel: function(){
+        var metrix = this.state.metrix,
+            level = this.state.level;
+        for(var i = 0 ; i < level*level; i ++){
+          if(!metrix[i]){
+            return false;
+          }
+        }
+        return true;
+      },
+
+      genMetrix: function(level){
+        var metrix = [];
+        for (var i = 0; i < level*level; i++){
+            metrix[i] = false;
+        }
+        return metrix;
+      },
+
+      getCloseBlock: function(level,index){
+        var x = Math.floor(index/level),
+            y = index%level,
+            cross = [];
+        if(y-1 >= 0){  //左
+          cross.push(x*level+y-1);
+        }
+        if(y+1 <= level-1) {//右
+          cross.push(x*level+y+1);
+        }
+        if(x-1 >= 0){ //上
+          cross.push((x-1)*level+y);
+        }
+        if(x+1 <= level-1){ //下
+          cross.push((x+1)*level+y);
+        }
+        cross.push(index);
+        return cross;
+      },
+
+      handleClick: function(index,event){
+        var level = this.state.level,
+            metrix = this.state.metrix,
+            cross = []; 
+
+        cross = this.getCloseBlock(level, index);//应该被翻转的格子Index数组
+
+        //翻转被点击的格子和与其相邻的格子
+        for(var i = 0 ; i < cross.length; i ++){ 
+            metrix[cross[i]] = !metrix[cross[i]];
+        }
+
+        this.setState({metrix: metrix});
+
+        if(this.passLevel()){
+          alert('congratulations!');
+          this.levelUp(level);
+        }
+
+      },
+
+      levelUp: function(level){
+        level = level + 1;
+        this.setState({
+          level: level,
+          metrix: this.genMetrix(level)
+        });
+      },
+
+      render: function(){
+        var metrix = this.state.metrix,
+            width = this.state.level*54 + 'px';
+        return (
+          <div className='f-cb' style={{width: width}}>
+            {
+              metrix.map(function(ele, i){
+                return (
+                  //这里是调用子组件，所以onClick并不是真正的click事件函数，而是作为prop传给了子
+                  //组件，所以在子组件中还需要绑定onClick事件
+                  <OnePiece colorOk={ele} onClick={this.handleClick.bind(this,i)} key={i}/>
+                  );
+              },this)
+            }
+          </div>
+          )
+
+      }
+
+
+    })
+
+    ReactDOM.render(<BigSquare/>,document.getElementById('wrap'));
+  </script>
+  </body>
+</html>
