@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <script src="../build/react.js"></script>
     <script src="../build/react-dom.js"></script>
     <script src="../build/browser.min.js"></script>
     <script src="../build/jquery.min.js"></script>
   </head>
   <style type="text/css">
+    .f-fl{ float: left;}
     .blue{background-color: blue;}
     .orange{background-color: orange;}
     .blue,.orange{float: left;width:50px;height: 50px; border: 2px solid #999;}
@@ -18,9 +20,36 @@
         overflow: hidden;
         content: ".";
     }
+    .m-content{
+          padding-top: 40px;
+    }
+    .m-top{
+          padding-bottom: 15px;
+    }
+    .u-reset-btn{
+      background-color: rgba(83, 97, 191, 0.67);
+      border-style: none;
+      height: 40px;
+      font-size: 15px;
+      padding: 0 20px;
+      color: #fff;
+      border-radius: 2px;
+      margin-right: 20px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .u-reset-btn:hover{background-color: rgba(83, 97, 191, 1);}
   </style>
   <body>
     <div id="wrap"></div>    
+    <div>
+      <h2>游戏规则：</h2>
+      <ul>
+        <li>每个小方块有橙色和蓝色两面，点击小方块翻转颜色</li>
+        <li>每个小方块点击后，与它相邻的方块颜色也会改变</li>
+        <li>每个关卡最初，所有小方块颜色都为橙色，将所有小方块颜色变为蓝色即可过关</li>
+      </ul>
+    </div>
   <script type="text/babel">
     // 小方块
     var OnePiece = React.createClass({
@@ -83,7 +112,10 @@
       handleClick: function(index,event){
         var level = this.state.level,
             metrix = this.state.metrix,
+            totalClickNum = this.state.totalClickNum,
             cross = []; 
+
+        totalClickNum++;  
 
         cross = this.getCloseBlock(level, index);//应该被翻转的格子Index数组
 
@@ -92,11 +124,20 @@
             metrix[cross[i]] = !metrix[cross[i]];
         }
 
-        this.setState({metrix: metrix});
+        this.setState({metrix: metrix, totalClickNum: totalClickNum});
+
+        this.forceUpdate();
 
         if(this.passLevel()){
-          alert('congratulations!');
-          this.levelUp(level);
+          if(level < 10 ){
+            if(confirm('恭喜过关啦！是否继续？')){
+              this.levelUp(level);
+            }            
+          }
+          else{
+            alert('哇塞，通关啦！你的记录是：总点击' + totalClickNum + '次！' );
+          }
+          
         }
 
       },
@@ -109,21 +150,43 @@
         });
       },
 
+      resetLevel: function(){
+        this.setState({metrix: this.genMetrix(this.state.level)});
+      },
+
+      resetGame: function(){
+        this.setState({
+          level: 2,
+          metrix: [false,false,false,false],
+          totalClickNum: 0
+        });
+      },
+
       render: function(){
         var metrix = this.state.metrix,
+            level = this.state.level - 1,
+            totalClickNum = this.state.totalClickNum,
             width = this.state.level*54 + 'px';
         return (
-          <div className='f-cb' style={{width: width}}>
-            {
-              metrix.map(function(ele, i){
-                return (
-                  //这里是调用子组件，所以onClick并不是真正的click事件函数，而是作为prop传给了子
-                  //组件，所以在子组件中还需要绑定onClick事件
-                  <OnePiece colorOk={ele} onClick={this.handleClick.bind(this,i)} key={i}/>
-                  );
-              },this)
-            }
-          </div>
+          <div className='m-content'>
+            <div className='m-top'>
+              <h1>当前关卡：第{level}关</h1>
+              <h2>总点击次数：{totalClickNum}次</h2>
+              <button className='u-reset-btn f-fl' onClick={this.resetLevel}>重置当前关卡</button>
+              <button className='u-reset-btn f-fl' onClick={this.resetGame}>重新开始游戏</button>
+            </div>
+            <div className='f-cb' style={{width: width}}>
+              {
+                metrix.map(function(ele, i){
+                  return (
+                    //这里是调用子组件，所以onClick并不是真正的click事件函数，而是作为prop传给了子
+                    //组件，所以在子组件中还需要绑定onClick事件
+                    <OnePiece colorOk={ele} onClick={this.handleClick.bind(this,i)} key={i}/>
+                    );
+                },this)
+              }
+            </div>
+        </div>
           )
 
       }
