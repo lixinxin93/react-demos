@@ -9,7 +9,7 @@
   </head>
   <style type="text/css">
     .f-fl{ float: left;}
-    .blue{background-color: blue;}
+    .blue{background-color: #3B3BFF;}
     .orange{background-color: orange;}
     .blue,.orange{float: left;width:50px;height: 50px; border: 2px solid #999;}
     .f-cb:after{
@@ -126,20 +126,24 @@
 
         this.setState({metrix: metrix, totalClickNum: totalClickNum});
 
-        this.forceUpdate();
+        //this.forceUpdate();
+      },
+
+      componentDidUpdate: function(prevProps,prevStates) {
+        var level = this.state.level,
+            totalClickNum = this.state.totalClickNum;
 
         if(this.passLevel()){
-          if(level < 10 ){
+          if(level < 4 ){
             if(confirm('恭喜过关啦！是否继续？')){
               this.levelUp(level);
             }            
           }
           else{
-            alert('哇塞，通关啦！你的记录是：总点击' + totalClickNum + '次！' );
+            alert('哇塞，通关啦！\n 你的记录是：总点击' + totalClickNum + '次！' );
           }
           
         }
-
       },
 
       levelUp: function(level){
